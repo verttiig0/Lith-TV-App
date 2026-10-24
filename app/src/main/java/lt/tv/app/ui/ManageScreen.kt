@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
@@ -134,7 +133,7 @@ private fun ChannelRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(Modifier.width(420.dp)) {
+        Column(Modifier.weight(1f)) {
             Text(
                 "${index + 1}. ${channel.name}" + if (channel.hidden) "  (hidden)" else "",
                 style = MaterialTheme.typography.titleMedium,
@@ -148,11 +147,11 @@ private fun ChannelRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        OutlinedButton(onClick = onEdit) { Text("Edit") }
-        OutlinedButton(onClick = onToggleHidden) { Text(if (channel.hidden) "Show" else "Hide") }
-        OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0) { Text("Move up") }
-        OutlinedButton(onClick = { onMove(1) }, enabled = !isLast) { Text("Move down") }
-        OutlinedButton(onClick = onRemove) { Text(if (confirmingRemove) "Press again to remove" else "Remove") }
+        OutlinedButton(onClick = onEdit) { Text("Edit", softWrap = false) }
+        OutlinedButton(onClick = onToggleHidden) { Text(if (channel.hidden) "Show" else "Hide", softWrap = false) }
+        OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0) { Text("Move up", softWrap = false) }
+        OutlinedButton(onClick = { onMove(1) }, enabled = !isLast) { Text("Move down", softWrap = false) }
+        OutlinedButton(onClick = onRemove) { Text(if (confirmingRemove) "Press again to remove" else "Remove", softWrap = false) }
     }
 }
 
