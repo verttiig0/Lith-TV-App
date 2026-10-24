@@ -11,10 +11,10 @@ object DefaultChannels {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
 
     val all: List<Channel> = listOf(
-        Channel(id = "tv3", name = "TV3", url = "http://stream.mcquack.net/29/index.m3u8", userAgent = BROWSER_UA),
         // New id so installs with the old geo-blocked LRT Plius stream pick up this one.
         Channel(id = "lrt-plius-mq", name = "LRT Plius", url = "http://stream.mcquack.net/353/index.m3u8", userAgent = BROWSER_UA),
         Channel(id = "lrt-lituanica", name = "LRT Lituanica", url = "https://stream-live.lrt.lt/lituanica/master.m3u8"),
+        Channel(id = "tv3", name = "TV3", url = "http://stream.mcquack.net/29/index.m3u8", userAgent = BROWSER_UA),
         Channel(id = "delfi-tv", name = "Delfi TV", url = "https://s1.dcdn.lt/live/televizija/playlist.m3u8"),
         Channel(id = "lryto-tv", name = "Lietuvos rytas TV", url = "https://live.lietuvosryto.tv/live/hls/eteris.m3u8"),
         Channel(id = "go3-sport1", name = "Go3 Sport1", url = "http://stream.mcquack.net/416/index.m3u8", userAgent = BROWSER_UA),
