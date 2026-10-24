@@ -2,6 +2,7 @@ package lt.tv.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +36,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.OutlinedButton
 import androidx.tv.material3.Text
 import lt.tv.app.data.Channel
+import lt.tv.app.data.UserAgents
 import androidx.compose.material3.MaterialTheme as PhoneMaterialTheme
 import androidx.compose.material3.Text as PhoneText
 import androidx.compose.material3.darkColorScheme as phoneDarkColorScheme
@@ -163,6 +167,15 @@ private fun ChannelDialog(
     var name by rememberSaveable { mutableStateOf(initial?.name ?: "") }
     var url by rememberSaveable { mutableStateOf(initial?.url ?: "http://") }
     var userAgent by rememberSaveable { mutableStateOf(initial?.userAgent ?: "") }
+    var customAgent by rememberSaveable {
+        mutableStateOf(userAgent.isNotEmpty() && UserAgents.presets.none { it.second == userAgent })
+    }
+    var agentMenuOpen by remember { mutableStateOf(false) }
+    val agentLabel = when {
+        customAgent -> "Custom"
+        userAgent.isEmpty() -> "Default"
+        else -> UserAgents.presets.first { it.second == userAgent }.first
+    }
     val valid = name.isNotBlank() && Regex("https?://.+").matches(url.trim())
 
     PhoneMaterialTheme(colorScheme = phoneDarkColorScheme()) {
@@ -178,12 +191,29 @@ private fun ChannelDialog(
                         label = { PhoneText("Stream URL (.m3u8 or .mpd)") },
                         singleLine = true,
                     )
-                    OutlinedTextField(
-                        value = userAgent,
-                        onValueChange = { userAgent = it },
-                        label = { PhoneText("User-Agent (optional)") },
-                        singleLine = true,
-                    )
+                    Box {
+                        TextButton(onClick = { agentMenuOpen = true }) { PhoneText("User-Agent: $agentLabel ▾") }
+                        DropdownMenu(expanded = agentMenuOpen, onDismissRequest = { agentMenuOpen = false }) {
+                            val pick = { ua: String, custom: Boolean ->
+                                userAgent = ua
+                                customAgent = custom
+                                agentMenuOpen = false
+                            }
+                            DropdownMenuItem(text = { PhoneText("Default") }, onClick = { pick("", false) })
+                            UserAgents.presets.forEach { (label, ua) ->
+                                DropdownMenuItem(text = { PhoneText(label) }, onClick = { pick(ua, false) })
+                            }
+                            DropdownMenuItem(text = { PhoneText("Custom…") }, onClick = { pick(userAgent, true) })
+                        }
+                    }
+                    if (customAgent) {
+                        OutlinedTextField(
+                            value = userAgent,
+                            onValueChange = { userAgent = it },
+                            label = { PhoneText("Custom User-Agent") },
+                            singleLine = true,
+                        )
+                    }
                 }
             },
             confirmButton = {
