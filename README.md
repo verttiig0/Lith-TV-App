@@ -16,7 +16,7 @@ and every screen works with a D-pad remote.
 
 ## Channels
 
-Built in: LRT Plius, LRT Lituanica, TV3, Delfi TV, Lietuvos rytas TV, Go3 Sport1, LRT Radijas, LRT Klasika,
+Built in: LRT Lituanica, LRT Plius, TV3, Delfi TV, Lietuvos rytas TV, Go3 Sport1, LRT Radijas, LRT Klasika,
 LRT Opus, Pūko radijas. TV3, LRT Plius and Go3 Sport1 are third-party restreams. LRT streams may be geo-blocked to
 Lithuania. Add any other stream from **Manage channels → Add channel**.
 
