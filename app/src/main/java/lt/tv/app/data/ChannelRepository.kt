@@ -54,6 +54,12 @@ class ChannelRepository(private val context: Context) {
         lineup.copy(channels = lineup.channels + channel)
     }
 
+    suspend fun edit(id: String, name: String, url: String, userAgent: String?) = update { lineup ->
+        lineup.copy(channels = lineup.channels.map {
+            if (it.id == id) it.copy(name = name.trim(), url = url.trim(), userAgent = userAgent?.trim()?.takeIf { ua -> ua.isNotEmpty() }) else it
+        })
+    }
+
     /** Moves a channel by [offset] places. The first visible channel plays on startup. */
     suspend fun move(id: String, offset: Int) = update { lineup ->
         val list = lineup.channels.toMutableList()
@@ -78,10 +84,15 @@ class ChannelRepository(private val context: Context) {
     private fun Preferences.lineup(): StoredLineup =
         this[key]?.let { runCatching { json.decodeFromString<StoredLineup>(it) }.getOrNull() } ?: StoredLineup()
 
-    /** Appends built-in channels that are new since the lineup was saved (or on first run). */
+    /**
+     * Appends built-in channels that are new since the lineup was saved (or on first run), and
+     * drops built-in channels that were taken out of [DefaultChannels].
+     */
     private fun StoredLineup.merged(): StoredLineup {
-        val known = channels.map { it.id }.toSet() + removedDefaults
+        val defaultIds = DefaultChannels.all.map { it.id }.toSet()
+        val kept = channels.filter { it.custom || it.id in defaultIds }
+        val known = kept.map { it.id }.toSet() + removedDefaults
         val missing = DefaultChannels.all.filter { it.id !in known }
-        return if (missing.isEmpty()) this else copy(channels = channels + missing)
+        return if (missing.isEmpty() && kept.size == channels.size) this else copy(channels = kept + missing)
     }
 }

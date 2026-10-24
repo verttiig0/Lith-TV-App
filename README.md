@@ -16,13 +16,11 @@ and every screen works with a D-pad remote.
 
 ## Channels
 
-Built in (official broadcaster streams only): LRT televizija, LRT Plius, LRT Lituanica, Delfi TV,
-Lietuvos rytas TV, LRT Radijas, LRT Klasika, LRT Opus. Several LRT streams are geo-blocked to Lithuania.
+Built in: TV3, LRT Plius, LRT Lituanica, Delfi TV, Lietuvos rytas TV, Go3 Sport1, LRT Radijas, LRT Klasika,
+LRT Opus, Pūko radijas. TV3, LRT Plius and Go3 Sport1 are third-party restreams. LRT streams may be geo-blocked to
+Lithuania. Add any other stream from **Manage channels → Add channel**.
 
-Commercial channels (LNK, TV3, BTV, TV6, TV8, TV1, Info TV) have no free official live stream, so they
-are not bundled. Add any stream you have access to from **Manage channels → Add channel**.
-
-In **Manage channels** you can hide, show, reorder and remove channels. The first channel that isn't
+In **Manage channels** you can edit, hide, show, reorder and remove channels. The first channel that isn't
 hidden plays on startup. **Restore defaults** brings back the built-in list and keeps your own channels.
 
 ## Phone companion (planned)

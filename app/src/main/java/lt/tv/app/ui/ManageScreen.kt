@@ -42,6 +42,7 @@ import androidx.compose.material3.darkColorScheme as phoneDarkColorScheme
 fun ManageScreen(viewModel: TvViewModel) {
     val channels by viewModel.allChannels.collectAsStateWithLifecycle()
     var adding by rememberSaveable { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<Channel?>(null) }
     var confirmRemoveId by remember { mutableStateOf<String?>(null) }
     val focus = remember { FocusRequester() }
 
@@ -72,6 +73,7 @@ fun ManageScreen(viewModel: TvViewModel) {
                     channel = ch,
                     isLast = index == channels.lastIndex,
                     confirmingRemove = confirmRemoveId == ch.id,
+                    onEdit = { editing = ch },
                     onToggleHidden = { viewModel.setHidden(ch.id, !ch.hidden) },
                     onMove = { viewModel.move(ch.id, it) },
                     onRemove = {
@@ -88,11 +90,25 @@ fun ManageScreen(viewModel: TvViewModel) {
     }
 
     if (adding) {
-        AddChannelDialog(
+        ChannelDialog(
+            title = "Add channel",
+            confirmLabel = "Add",
             onDismiss = { adding = false },
-            onAdd = { name, url, ua ->
+            onConfirm = { name, url, ua ->
                 viewModel.add(name, url, ua)
                 adding = false
+            },
+        )
+    }
+    editing?.let { ch ->
+        ChannelDialog(
+            title = "Edit channel",
+            confirmLabel = "Save",
+            initial = ch,
+            onDismiss = { editing = null },
+            onConfirm = { name, url, ua ->
+                viewModel.edit(ch.id, name, url, ua)
+                editing = null
             },
         )
     }
@@ -104,6 +120,7 @@ private fun ChannelRow(
     channel: Channel,
     isLast: Boolean,
     confirmingRemove: Boolean,
+    onEdit: () -> Unit,
     onToggleHidden: () -> Unit,
     onMove: (Int) -> Unit,
     onRemove: () -> Unit,
@@ -127,6 +144,7 @@ private fun ChannelRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
+        OutlinedButton(onClick = onEdit) { Text("Edit") }
         OutlinedButton(onClick = onToggleHidden) { Text(if (channel.hidden) "Show" else "Hide") }
         OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0) { Text("Move up") }
         OutlinedButton(onClick = { onMove(1) }, enabled = !isLast) { Text("Move down") }
@@ -135,16 +153,22 @@ private fun ChannelRow(
 }
 
 @Composable
-private fun AddChannelDialog(onDismiss: () -> Unit, onAdd: (String, String, String?) -> Unit) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var url by rememberSaveable { mutableStateOf("") }
-    var userAgent by rememberSaveable { mutableStateOf("") }
-    val valid = name.isNotBlank() && (url.startsWith("http://") || url.startsWith("https://"))
+private fun ChannelDialog(
+    title: String,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String?) -> Unit,
+    initial: Channel? = null,
+) {
+    var name by rememberSaveable { mutableStateOf(initial?.name ?: "") }
+    var url by rememberSaveable { mutableStateOf(initial?.url ?: "http://") }
+    var userAgent by rememberSaveable { mutableStateOf(initial?.userAgent ?: "") }
+    val valid = name.isNotBlank() && Regex("https?://.+").matches(url.trim())
 
     PhoneMaterialTheme(colorScheme = phoneDarkColorScheme()) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { PhoneText("Add channel") },
+            title = { PhoneText(title) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = { PhoneText("Name") }, singleLine = true)
@@ -163,7 +187,7 @@ private fun AddChannelDialog(onDismiss: () -> Unit, onAdd: (String, String, Stri
                 }
             },
             confirmButton = {
-                TextButton(onClick = { onAdd(name, url, userAgent) }, enabled = valid) { PhoneText("Add") }
+                TextButton(onClick = { onConfirm(name, url, userAgent) }, enabled = valid) { PhoneText(confirmLabel) }
             },
             dismissButton = { TextButton(onClick = onDismiss) { PhoneText("Cancel") } },
         )
