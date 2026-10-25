@@ -4,8 +4,8 @@ An Android TV app for Lithuanian live TV. It starts playing the first channel as
 and every screen works with a D-pad remote.
 
 # Verified Working
-Nvidia Shield
-Amazon Fire Stick - 4k Max (1st Gen) running Fire OS 7.7.1.3.
+- Nvidia Shield
+- Amazon Fire Stick - 4k Max (1st Gen) running Fire OS 7.7.1.3.
 
 ## Remote controls
 
