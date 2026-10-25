@@ -83,5 +83,7 @@ class TvViewModel(app: Application) : AndroidViewModel(app) {
     fun remove(id: String) = viewModelScope.launch { repository.remove(id) }
     fun move(id: String, offset: Int) = viewModelScope.launch { repository.move(id, offset) }
     fun add(name: String, url: String, userAgent: String?) = viewModelScope.launch { repository.add(name, url, userAgent) }
+    fun edit(id: String, name: String, url: String, userAgent: String?) =
+        viewModelScope.launch { repository.edit(id, name, url, userAgent) }
     fun resetToDefaults() = viewModelScope.launch { repository.resetToDefaults() }
 }

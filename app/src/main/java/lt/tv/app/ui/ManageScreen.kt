@@ -2,15 +2,17 @@ package lt.tv.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.OutlinedButton
 import androidx.tv.material3.Text
 import lt.tv.app.data.Channel
+import lt.tv.app.data.UserAgents
 import androidx.compose.material3.MaterialTheme as PhoneMaterialTheme
 import androidx.compose.material3.Text as PhoneText
 import androidx.compose.material3.darkColorScheme as phoneDarkColorScheme
@@ -42,6 +45,7 @@ import androidx.compose.material3.darkColorScheme as phoneDarkColorScheme
 fun ManageScreen(viewModel: TvViewModel) {
     val channels by viewModel.allChannels.collectAsStateWithLifecycle()
     var adding by rememberSaveable { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<Channel?>(null) }
     var confirmRemoveId by remember { mutableStateOf<String?>(null) }
     val focus = remember { FocusRequester() }
 
@@ -72,6 +76,7 @@ fun ManageScreen(viewModel: TvViewModel) {
                     channel = ch,
                     isLast = index == channels.lastIndex,
                     confirmingRemove = confirmRemoveId == ch.id,
+                    onEdit = { editing = ch },
                     onToggleHidden = { viewModel.setHidden(ch.id, !ch.hidden) },
                     onMove = { viewModel.move(ch.id, it) },
                     onRemove = {
@@ -88,11 +93,25 @@ fun ManageScreen(viewModel: TvViewModel) {
     }
 
     if (adding) {
-        AddChannelDialog(
+        ChannelDialog(
+            title = "Add channel",
+            confirmLabel = "Add",
             onDismiss = { adding = false },
-            onAdd = { name, url, ua ->
+            onConfirm = { name, url, ua ->
                 viewModel.add(name, url, ua)
                 adding = false
+            },
+        )
+    }
+    editing?.let { ch ->
+        ChannelDialog(
+            title = "Edit channel",
+            confirmLabel = "Save",
+            initial = ch,
+            onDismiss = { editing = null },
+            onConfirm = { name, url, ua ->
+                viewModel.edit(ch.id, name, url, ua)
+                editing = null
             },
         )
     }
@@ -104,6 +123,7 @@ private fun ChannelRow(
     channel: Channel,
     isLast: Boolean,
     confirmingRemove: Boolean,
+    onEdit: () -> Unit,
     onToggleHidden: () -> Unit,
     onMove: (Int) -> Unit,
     onRemove: () -> Unit,
@@ -113,7 +133,7 @@ private fun ChannelRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(Modifier.width(420.dp)) {
+        Column(Modifier.weight(1f)) {
             Text(
                 "${index + 1}. ${channel.name}" + if (channel.hidden) "  (hidden)" else "",
                 style = MaterialTheme.typography.titleMedium,
@@ -127,24 +147,40 @@ private fun ChannelRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        OutlinedButton(onClick = onToggleHidden) { Text(if (channel.hidden) "Show" else "Hide") }
-        OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0) { Text("Move up") }
-        OutlinedButton(onClick = { onMove(1) }, enabled = !isLast) { Text("Move down") }
-        OutlinedButton(onClick = onRemove) { Text(if (confirmingRemove) "Press again to remove" else "Remove") }
+        OutlinedButton(onClick = onEdit) { Text("Edit", softWrap = false) }
+        OutlinedButton(onClick = onToggleHidden) { Text(if (channel.hidden) "Show" else "Hide", softWrap = false) }
+        OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0) { Text("Move up", softWrap = false) }
+        OutlinedButton(onClick = { onMove(1) }, enabled = !isLast) { Text("Move down", softWrap = false) }
+        OutlinedButton(onClick = onRemove) { Text(if (confirmingRemove) "Press again to remove" else "Remove", softWrap = false) }
     }
 }
 
 @Composable
-private fun AddChannelDialog(onDismiss: () -> Unit, onAdd: (String, String, String?) -> Unit) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var url by rememberSaveable { mutableStateOf("") }
-    var userAgent by rememberSaveable { mutableStateOf("") }
-    val valid = name.isNotBlank() && (url.startsWith("http://") || url.startsWith("https://"))
+private fun ChannelDialog(
+    title: String,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String?) -> Unit,
+    initial: Channel? = null,
+) {
+    var name by rememberSaveable { mutableStateOf(initial?.name ?: "") }
+    var url by rememberSaveable { mutableStateOf(initial?.url ?: "http://") }
+    var userAgent by rememberSaveable { mutableStateOf(initial?.userAgent ?: "") }
+    var customAgent by rememberSaveable {
+        mutableStateOf(userAgent.isNotEmpty() && UserAgents.presets.none { it.second == userAgent })
+    }
+    var agentMenuOpen by remember { mutableStateOf(false) }
+    val agentLabel = when {
+        customAgent -> "Custom"
+        userAgent.isEmpty() -> "Default"
+        else -> UserAgents.presets.first { it.second == userAgent }.first
+    }
+    val valid = name.isNotBlank() && Regex("https?://.+").matches(url.trim())
 
     PhoneMaterialTheme(colorScheme = phoneDarkColorScheme()) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { PhoneText("Add channel") },
+            title = { PhoneText(title) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = { PhoneText("Name") }, singleLine = true)
@@ -154,16 +190,33 @@ private fun AddChannelDialog(onDismiss: () -> Unit, onAdd: (String, String, Stri
                         label = { PhoneText("Stream URL (.m3u8 or .mpd)") },
                         singleLine = true,
                     )
-                    OutlinedTextField(
-                        value = userAgent,
-                        onValueChange = { userAgent = it },
-                        label = { PhoneText("User-Agent (optional)") },
-                        singleLine = true,
-                    )
+                    Box {
+                        TextButton(onClick = { agentMenuOpen = true }) { PhoneText("User-Agent: $agentLabel ▾") }
+                        DropdownMenu(expanded = agentMenuOpen, onDismissRequest = { agentMenuOpen = false }) {
+                            val pick = { ua: String, custom: Boolean ->
+                                userAgent = ua
+                                customAgent = custom
+                                agentMenuOpen = false
+                            }
+                            DropdownMenuItem(text = { PhoneText("Default") }, onClick = { pick("", false) })
+                            UserAgents.presets.forEach { (label, ua) ->
+                                DropdownMenuItem(text = { PhoneText(label) }, onClick = { pick(ua, false) })
+                            }
+                            DropdownMenuItem(text = { PhoneText("Custom…") }, onClick = { pick(userAgent, true) })
+                        }
+                    }
+                    if (customAgent) {
+                        OutlinedTextField(
+                            value = userAgent,
+                            onValueChange = { userAgent = it },
+                            label = { PhoneText("Custom User-Agent") },
+                            singleLine = true,
+                        )
+                    }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { onAdd(name, url, userAgent) }, enabled = valid) { PhoneText("Add") }
+                TextButton(onClick = { onConfirm(name, url, userAgent) }, enabled = valid) { PhoneText(confirmLabel) }
             },
             dismissButton = { TextButton(onClick = onDismiss) { PhoneText("Cancel") } },
         )

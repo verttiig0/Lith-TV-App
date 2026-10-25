@@ -34,9 +34,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -58,6 +60,7 @@ fun PlayerScreen(viewModel: TvViewModel, acceptKeys: Boolean) {
     val paused by viewModel.paused.collectAsStateWithLifecycle()
     var error by remember { mutableStateOf<String?>(null) }
     var showBanner by remember { mutableStateOf(true) }
+    var audioOnly by remember { mutableStateOf(false) }
 
     val player = remember { ExoPlayer.Builder(context).build() }
 
@@ -66,6 +69,10 @@ fun PlayerScreen(viewModel: TvViewModel, acceptKeys: Boolean) {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 if (isPlaying) error = null
                 viewModel.onPlaybackChanged(isPlaying, error)
+            }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                audioOnly = !tracks.isEmpty && !tracks.containsType(C.TRACK_TYPE_VIDEO)
             }
 
             override fun onPlayerError(e: PlaybackException) {
@@ -143,6 +150,16 @@ fun PlayerScreen(viewModel: TvViewModel, acceptKeys: Boolean) {
             factory = { ctx -> PlayerView(ctx).also { it.useController = false; it.player = player } },
             modifier = Modifier.fillMaxSize(),
         )
+
+        // Radio streams have no picture, so show the station name instead of a black screen.
+        if (audioOnly && channel != null) {
+            Text(
+                channel?.name.orEmpty(),
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.Center),
+            )
+        }
 
         AnimatedVisibility(
             visible = (showBanner || error != null) && channel != null,
