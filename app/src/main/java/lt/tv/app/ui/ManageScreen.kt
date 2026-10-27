@@ -59,9 +59,9 @@ fun ManageScreen(viewModel: TvViewModel) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Manage channels", style = MaterialTheme.typography.headlineMedium, color = Color.White)
-            Button(onClick = { adding = true }, modifier = Modifier.focusRequester(focus)) { Text("Add channel") }
-            OutlinedButton(onClick = { viewModel.resetToDefaults() }) { Text("Restore defaults") }
-            OutlinedButton(onClick = { viewModel.show(Screen.Player) }) { Text("Done") }
+            Button(onClick = { adding = true }, modifier = Modifier.focusRequester(focus).onTap { adding = true }) { Text("Add channel") }
+            OutlinedButton(onClick = { viewModel.resetToDefaults() }, modifier = Modifier.onTap { viewModel.resetToDefaults() }) { Text("Restore defaults") }
+            OutlinedButton(onClick = { viewModel.show(Screen.Player) }, modifier = Modifier.onTap { viewModel.show(Screen.Player) }) { Text("Done") }
         }
         Text(
             "The first channel that isn't hidden plays when the app starts.",
@@ -147,11 +147,11 @@ private fun ChannelRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        OutlinedButton(onClick = onEdit) { Text("Edit", softWrap = false) }
-        OutlinedButton(onClick = onToggleHidden) { Text(if (channel.hidden) "Show" else "Hide", softWrap = false) }
-        OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0) { Text("Move up", softWrap = false) }
-        OutlinedButton(onClick = { onMove(1) }, enabled = !isLast) { Text("Move down", softWrap = false) }
-        OutlinedButton(onClick = onRemove) { Text(if (confirmingRemove) "Press again to remove" else "Remove", softWrap = false) }
+        OutlinedButton(onClick = onEdit, modifier = Modifier.onTap(onEdit)) { Text("Edit", softWrap = false) }
+        OutlinedButton(onClick = onToggleHidden, modifier = Modifier.onTap(onToggleHidden)) { Text(if (channel.hidden) "Show" else "Hide", softWrap = false) }
+        OutlinedButton(onClick = { onMove(-1) }, enabled = index > 0, modifier = Modifier.onTap { if (index > 0) onMove(-1) }) { Text("Move up", softWrap = false) }
+        OutlinedButton(onClick = { onMove(1) }, enabled = !isLast, modifier = Modifier.onTap { if (!isLast) onMove(1) }) { Text("Move down", softWrap = false) }
+        OutlinedButton(onClick = onRemove, modifier = Modifier.onTap(onRemove)) { Text(if (confirmingRemove) "Press again to remove" else "Remove", softWrap = false) }
     }
 }
 

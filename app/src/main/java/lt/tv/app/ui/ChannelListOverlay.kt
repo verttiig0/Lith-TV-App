@@ -54,7 +54,10 @@ fun ChannelListOverlay(viewModel: TvViewModel) {
                         },
                         headlineContent = { Text(ch.name) },
                         leadingContent = { Text("${index + 1}") },
-                        modifier = if (index == currentIndex) Modifier.focusRequester(focus) else Modifier,
+                        modifier = (if (index == currentIndex) Modifier.focusRequester(focus) else Modifier).onTap {
+                            viewModel.play(ch.id)
+                            viewModel.show(Screen.Player)
+                        },
                     )
                 }
                 item(key = "manage") {
@@ -62,7 +65,8 @@ fun ChannelListOverlay(viewModel: TvViewModel) {
                         selected = false,
                         onClick = { viewModel.show(Screen.Manage) },
                         headlineContent = { Text("Manage channels…") },
-                        modifier = if (channels.isEmpty()) Modifier.focusRequester(focus) else Modifier,
+                        modifier = (if (channels.isEmpty()) Modifier.focusRequester(focus) else Modifier)
+                            .onTap { viewModel.show(Screen.Manage) },
                     )
                 }
             }
