@@ -6,6 +6,7 @@ and every screen works with a D-pad remote.
 # Verified Working
 - Nvidia Shield
 - Amazon Fire Stick - 4k Max (1st Gen) running Fire OS 7.7.1.3.
+- Samsung Galaxy Ultra S25
 
 ## Remote controls
 
