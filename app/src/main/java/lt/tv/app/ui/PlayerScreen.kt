@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -151,6 +155,28 @@ fun PlayerScreen(viewModel: TvViewModel, acceptKeys: Boolean) {
             modifier = Modifier.fillMaxSize(),
         )
 
+        // Touch controls for phones: swipe up/down changes channel, tap opens the channel list.
+        if (acceptKeys) {
+            val swipeThreshold = with(LocalDensity.current) { 80.dp.toPx() }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) { detectTapGestures(onTap = { viewModel.show(Screen.ChannelList) }) }
+                    .pointerInput(Unit) {
+                        var dragged = 0f
+                        detectVerticalDragGestures(
+                            onDragStart = { dragged = 0f },
+                            onDragEnd = {
+                                when {
+                                    dragged < -swipeThreshold -> viewModel.handle(PlayerCommand.Next)
+                                    dragged > swipeThreshold -> viewModel.handle(PlayerCommand.Previous)
+                                }
+                            },
+                        ) { _, dy -> dragged += dy }
+                    },
+            )
+        }
+
         // Radio streams have no picture, so show the station name instead of a black screen.
         if (audioOnly && channel != null) {
             Text(
@@ -176,7 +202,7 @@ fun PlayerScreen(viewModel: TvViewModel, acceptKeys: Boolean) {
                 Text("$number  ${channel?.name.orEmpty()}", style = MaterialTheme.typography.headlineMedium, color = Color.White)
                 error?.let { Text(it, style = MaterialTheme.typography.bodyLarge, color = Color(0xFFFFB4AB)) }
                 Text(
-                    "▲▼ change channel · OK channel list · Menu manage channels",
+                    "▲▼ or swipe to change channel · OK or tap for channel list · Menu manage channels",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFFBBBBBB),
                 )

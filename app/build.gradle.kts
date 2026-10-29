@@ -13,8 +13,8 @@ android {
         applicationId = "lt.tv.app"
         minSdk = 23
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = 5
+        versionName = "0.2.3"
     }
 
     buildTypes {

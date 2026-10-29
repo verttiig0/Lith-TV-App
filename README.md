@@ -11,9 +11,9 @@ and every screen works with a D-pad remote.
 
 | Key | Action |
 | --- | --- |
-| Up / Channel down | Previous channel |
-| Down / Channel up | Next channel |
-| OK or Left | Channel list |
+| Up / Channel down / swipe down | Previous channel |
+| Down / Channel up / swipe up | Next channel |
+| OK or Left / tap | Channel list |
 | Menu | Manage channels |
 | Play/Pause | Pause or resume |
 | Back | Close the list or manage screen |
